@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title><code>json-stringify-pretty-compact</code> Demo</title>
+    <style>
+        label {
+            display: block;
+        }
+
+        textarea {
+            font-family: monospace;
+            white-space: pre;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1><code>json-stringify-pretty-compact</code> Demo</h1>
+
+    <h2>Enter &#128169; ugly JSON here &#128071;</h2>
+    <form id="ugly-input-form">
+        <textarea id="ugly-input-text" cols="80" rows="20">
+    {
+        "bool": true,
+"short array": [1,2, 3],
+
+    "long array": [              {"x": 1, "y": 2},{"x": 2, "y": 1},
+         {"x":1,  "y": 1},
+        {"x":    2, "y": 2}
+]
+        }
+        </textarea>
+        <div id="ugly-input-stats"></div>
+    </form>
+
+    <h2>Get &#10024; pretty compact JSON here &#128071;</h2>
+    <form id="pretty-output-form">
+        <textarea id="pretty-output-text" cols="80" rows="20"></textarea>
+        <div id="pretty-output-stats"></div>
+    </form>
+    </div>
+
+
+    <script type="module">
+        import { default as stringify } from "./index.js";
+
+        const inputTextArea = document.getElementById('ugly-input-text');
+        const outputTextArea = document.getElementById('pretty-output-text');
+        const inputStats = document.getElementById('ugly-input-stats');
+        const outputStats = document.getElementById('pretty-output-stats');
+
+
+        /**
+         * Take JSON from input text area, prettify and put in output text area
+         */
+        function prettify() {
+            const ugly = inputTextArea.value;
+            updateStats(inputTextArea, inputStats);
+            try {
+                const parsed = JSON.parse(ugly);
+                outputTextArea.value = stringify(parsed);
+                updateStats(outputTextArea, outputStats);
+            } catch (error) {
+                outputTextArea.value = "";
+                outputStats.innerHTML = `&#10060; ${error.message}`;
+            }
+        }
+
+        function renderCount(n, singular, plural) {
+            return n + " " + (n === 1 ? singular : (plural ? plural : singular + "s"));
+        }
+
+        /**
+         * Calculate stats from given text area element and display in given stats element
+         */
+        function updateStats(textElement, statsElement) {
+            const text = textElement.value;
+            const characterCount = text.length;
+            const lines = text.split("\n");
+            const lineCount = lines.length;
+            const maxLineLength = lines.reduce(function (acc, line) {
+                return line.length >= acc ? line.length : acc
+            }, 0);
+            statsElement.innerHTML = `
+                ${renderCount(characterCount, "char")},
+                ${renderCount(lineCount, "line")},
+                longest line: ${renderCount(maxLineLength, "char")}
+            `;
+        }
+
+        let lastEditTimer;
+
+        // Immediate on "change" event (losing focus with change)
+        inputTextArea.addEventListener('change', function () {
+            clearTimeout(lastEditTimer);
+            prettify();
+        });
+        // After timeout on "input" event.
+        inputTextArea.addEventListener("input", function () {
+            clearTimeout(lastEditTimer);
+            lastEditTimer = setTimeout(prettify, 500);
+        });
+
+        // Initialization (e.g. when browser preserves textarea content on reload).
+        prettify();
+
+    </script>
+
+
+</body>
+
+
+
+</html>
